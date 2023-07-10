@@ -23,31 +23,54 @@ export default async function Home() {
     }
 
   }
-  
-   
-  const saveToDB = async() => {
-    await fetch('http://127.0.0.1:8090/api/collections/dota2heroes/records', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({  
-        'name':"npc_dota_hero_antimage",
-        'name_loc':"Anti-Mage", 
-        'primary_attr':1,
-        'complexity':1,
-        'image':"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/antimage.png",
-        'attribute_img':"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png"
 
+  async function addNameLoc() {
+    const heroes = await fetch('http://127.0.0.1:8090/api/collections/dota2heroes/records?page=1&perPage=300', { 'cache': 'no-cache'})
+
+    const data = await heroes.json()
+ 
+    const data2 = data.items as any[]
+    
+    await Promise.all(
+      data2?.map( async(hero) => {
+        console.log(hero.id) 
+        const trimmedName = hero.name
+          .replace("npc_dota_hero_", "")
+          .split("_")
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
+        console.log(trimmedName) 
+  
+  
+        try {
+          const response = await fetch(`http://127.0.0.1:8090/api/collections/dota2heroes/records/${hero.id}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              
+            },    
+            body: JSON.stringify({name_loc: trimmedName}),
+          });
+  
+          if (!response.ok) {
+            console.log(`Failed to save hero: ${trimmedName}`);
+          }
+        } catch (error) {
+          console.error(`Error occurred while saving hero: ${trimmedName}`);
+        } 
+  
+  
+  
       })
 
-    })
+    )
 
-     console.log('success') 
-
+   
   }
   
-  saveToDB()
+  //addNameLoc()
+   
+  
 
   const enlistHeroes = async () => {
      
@@ -123,13 +146,10 @@ export default async function Home() {
               'primary_attr': hero.primary_attr,
               'complexity': 1,
               'image':`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${image}.png`,
-              'attribute_img': `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_${attribute}.png`
-
-
+              'attribute_img': `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_${attribute}.png` 
           }
 
-          //console.log(sendBody)
-
+          //console.log(sendBody) 
 
           try {
             const response = await fetch("http://127.0.0.1:8090/api/collections/dota2heroes/records", {
@@ -146,40 +166,37 @@ export default async function Home() {
           } catch (error) {
             console.error(`Error occurred while saving hero: ${hero.localized_name}`);
           }
-      }))
- 
+      })) 
   }
 
   //saveToPocketBase(allHeroes)
 
   async function renderHeroes() {
-    const res = await fetch('http://127.0.0.1:8090/api/collections/dota2heroes/records?page=1&perPage=200', { cache: 'no-cache'} )
+    const res = await fetch('http://127.0.0.1:8090/api/collections/dota2heroes/records?page=1&perPage=300', { cache: 'no-cache'} )
     const data = await res.json()
     return data?.items as any[]
   }
 
-  const heroList = await renderHeroes()
-
+  const heroList = await renderHeroes() 
    
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       
       <div>
-        {
-          
+        { 
           heroList?.map((hero) => {
             return <>
-              <div>{hero.name}</div>
-              <div>{hero.primary_attr}</div>
-              <Image width={300} height={300} src={hero.image} alt={hero.name}  />
+              <div>{hero.name_loc}({hero.primary_attr})</div>
               <Image width={20} height={20} src={hero.attribute_img} alt={hero.name} />
+             
+              <Image width={300} height={300} src={hero.image} alt={hero.name}  />
+              
               <br />
               
             </>
           })
 
         }
-        
         
       </div>
     </main>
