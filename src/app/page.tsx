@@ -2,8 +2,9 @@
 
 import axios from 'axios'
 import Image from 'next/image'   
-//import Pocketbase from 'pocketbase'
-
+import Link from 'next/link' 
+ 
+ 
 export default async function Home() {
   
   const getHeroes = async () => {
@@ -57,24 +58,15 @@ export default async function Home() {
           }
         } catch (error) {
           console.error(`Error occurred while saving hero: ${trimmedName}`);
-        } 
-  
-  
-  
+        }  
       })
 
-    )
-
-   
+    ) 
   }
   
-  //addNameLoc()
-   
-  
+  //addNameLoc() 
 
-  const enlistHeroes = async () => {
-     
-     
+  const enlistHeroes = async () => { 
 
     const heroes = await getHeroes()
 
@@ -96,8 +88,7 @@ export default async function Home() {
       } else  {
         attribute = attributes[3] 
       }
-
-
+ 
       list2.push({
         "name": element.name,
         "name_loc": element.localized_name,
@@ -109,8 +100,7 @@ export default async function Home() {
       })
     });
 
- 
-
+  
     return list2 as any[] 
      
   }
@@ -178,22 +168,44 @@ export default async function Home() {
   }
 
   const heroList = await renderHeroes() 
+
+  function HeroCard({currentHero}:any) {
+   
+    const { id, name_loc, image, attribute_img } = currentHero || {}
+    const imageErrorHandler = (e:any) => {
+      e.target.src = 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/dawnbreaker.png'
+    }
+ 
+      
+    return (
+      <Link href={`/hero/${id}`}>
+        <div className='rounded-md border-2 p-1'>
+          <div className='flex justify-between'> 
+            <div>
+            {name_loc}
+            </div>
+            <div>
+            x
+             </div>
+          </div> 
+          <Image src={image} width={300} height={300} alt={name_loc}     />
+
+        </div>
+       
+      </Link>
+    )
+  }
+
+  
    
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       
-      <div>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
         { 
           heroList?.map((hero) => {
-            return <>
-              <div>{hero.name_loc}({hero.primary_attr})</div>
-              <Image width={20} height={20} src={hero.attribute_img} alt={hero.name} />
-             
-              <Image width={300} height={300} src={hero.image} alt={hero.name}  />
+            return  <HeroCard key={hero.id} currentHero={hero} />
               
-              <br />
-              
-            </>
           })
 
         }
@@ -201,4 +213,6 @@ export default async function Home() {
       </div>
     </main>
   )
+
+ 
 }
